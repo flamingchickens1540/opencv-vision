@@ -1,0 +1,24 @@
+- General Tutorials
+  - [C, C++, Java](http://docs.opencv.org/3.1.0/d9/df8/tutorial_root.html)
+    - Follow [this guide](http://docs.opencv.org/3.0-last-rst/doc/tutorials/introduction/desktop_java/java_dev_intro.html) to compile everything, follow [this guide](http://docs.opencv.org/3.1.0/d1/d0a/tutorial_java_eclipse.html) to set it up with Eclipse
+  - [Python](http://docs.opencv.org/3.1.0/d6/d00/tutorial_py_root.html)
+  - [JavaDoc for 3.1.0](http://docs.opencv.org/java/3.1.0/)
+- I/O
+  - [Converting BufferedImage to Mat](http://stackoverflow.com/questions/14958643/converting-bufferedimage-to-mat-in-opencv)
+- Color detection
+  - [Tutorial and explanation using C](http://opencv-srf.blogspot.com/2010/09/object-detection-using-color-seperation.html)
+  - [Colorspace in OpenCV](http://stackoverflow.com/questions/10948589/choosing-correct-hsv-values-for-opencv-thresholding-with-inranges)
+- Backend
+  - CUDA and OpenCL backends exist
+- Frontend
+  - C++, C, Python and Java interfaces
+  - Cross-platform
+
+- Random stuff
+  - Making versions 3.1.0 and 2.4.13 on macOS fails with the error `QTKit/QTKit.h file not found`
+    - This appears to be due to a missing libary (QTKit), which has been deprecated by Apple since 10.9
+    - This appears to be resolved by [PR 7266](https://github.com/opencv/opencv/pull/7266), but no releases contain this update yet: use the latest version of branch master on GitHub for now.
+  - On macOS, installing CMake from the provided default download does not install the `cmake` command.
+    - On macOS, install CMake using Homebrew to remedy this
+  - The Java components will not be built unless Apache Ant is installed and correctly configured
+    - On macOS, the easiest way to install Ant is through Homebrew
