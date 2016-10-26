@@ -19,13 +19,11 @@ public class Image {
 		image = toBufferedImageOfType(image, BufferedImage.TYPE_3BYTE_BGR);
 		this.image = bufferedImageToMat(image);
 		this.oldImage = bufferedImageToMat(image);
-		// Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
 	}
 
 	public Image(BufferedImage image, int newWidth, int newHeight, int hints) {
 		this.image = bufferedImageToMat((BufferedImage) image.getScaledInstance(newWidth, newHeight, hints));
 		this.oldImage = bufferedImageToMat((BufferedImage) image.getScaledInstance(newWidth, newHeight, hints));
-		// Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
 	}
 
 	public void threshold(Scalar low, Scalar high) {
@@ -62,7 +60,6 @@ public class Image {
 	}
 
 	public static Mat bufferedImageToMat(BufferedImage image) {
-		//image = toBufferedImageOfType(image, BufferedImage.TYPE_3BYTE_BGR);
 		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		mat.put(0, 0, pixels);
