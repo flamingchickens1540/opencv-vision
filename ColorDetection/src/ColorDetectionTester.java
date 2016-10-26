@@ -17,7 +17,7 @@ public class ColorDetectionTester {
 		
 		ImageProcessor imageProcessor = new ImageProcessor();
 		
-		BufferedImage processedImage = imageProcessor.detectColor(new int[] {0,0,0}, new int[] {255,5,255},originalImage);
+		BufferedImage processedImage = imageProcessor.detectColor(new int[] {165,50,80}, new int[] {180,255,255},originalImage);
 		try {
 			ImageIO.write(processedImage, "png", new File("TestImages/processed.png"));
 		} catch (IOException e) {

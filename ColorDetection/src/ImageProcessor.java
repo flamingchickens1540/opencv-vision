@@ -20,8 +20,8 @@ public class ImageProcessor {
 	
 	/**
 	 * Detect a given color from a BufferedImage
-	 * @param lowerBounds of color to detect in HSV format in 8UC3 (three 8 bit channels)
-	 * @param upperBounds of color to detect in HSV format in 8UC3 (three 8 bit channels)
+	 * @param lowerBounds of color to detect in HSV format in 0-179, 0-255, 0-255
+	 * @param upperBounds of color to detect in HSV format in 0-179, 0-255, 0-255
 	 * @param image BufferedImage to process
 	 * @return BufferedImage with white pixels as true and black as false
 	 */
