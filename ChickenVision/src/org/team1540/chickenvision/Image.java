@@ -19,29 +19,36 @@ public class Image {
 		image = toBufferedImageOfType(image, BufferedImage.TYPE_3BYTE_BGR);
 		this.image = bufferedImageToMat(image);
 		this.oldImage = bufferedImageToMat(image);
-		//Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
+		// Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
 	}
 
 	public Image(BufferedImage image, int newWidth, int newHeight, int hints) {
 		this.image = bufferedImageToMat((BufferedImage) image.getScaledInstance(newWidth, newHeight, hints));
 		this.oldImage = bufferedImageToMat((BufferedImage) image.getScaledInstance(newWidth, newHeight, hints));
-		//Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
+		// Imgproc.cvtColor(this.image, this.image, Imgproc.COLOR_BGR2HSV);
 	}
 
 	public void threshold(Scalar low, Scalar high) {
 		Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
-		Core.inRange(image, low, high, image);
+		
+		// sketchy hack, but it works
+		Scalar lowPrime = new Scalar(low.val[0], low.val[2], low.val[1]);
+		Scalar highPrime = new Scalar(high.val[0], high.val[2], high.val[1]);
+		
+		Core.inRange(image, lowPrime, highPrime, image);
 		Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2BGR);
-		Core.multiply(image, new Scalar(1.0/256.0, 1.0/256.0, 1.0/256.0), image);
+		Core.multiply(image, new Scalar(1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0), image);
 		Core.multiply(image, oldImage, image);
 	}
 
 	public BufferedImage toBufferedImage() {
-		// Imgproc.cvtColor(image, image, Imgproc.COLOR_HSV2BGR);
 		BufferedImage out;
 		byte[] data = new byte[(int) (image.width() * image.height() * image.elemSize())];
 		int type;
 		image.get(0, 0, data);
+		for (int i=0; i<data.length/3; ++i) {
+			swap(data, i*3+0, i*3+2);
+		}
 
 		if (image.channels() == 1) {
 			type = BufferedImage.TYPE_BYTE_GRAY;
@@ -55,7 +62,7 @@ public class Image {
 	}
 
 	public static Mat bufferedImageToMat(BufferedImage image) {
-		image = toBufferedImageOfType(image, BufferedImage.TYPE_3BYTE_BGR);
+		//image = toBufferedImageOfType(image, BufferedImage.TYPE_3BYTE_BGR);
 		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 		mat.put(0, 0, pixels);
@@ -81,5 +88,11 @@ public class Image {
 		}
 
 		return image;
+	}
+	
+	private static void swap(byte[] buffer, int index1, int index2) {
+		byte temp = buffer[index2];
+		buffer[index2] = buffer[index1];
+		buffer[index1] = temp;
 	}
 }
