@@ -26,17 +26,28 @@ public class Image {
 		this.oldImage = bufferedImageToMat((BufferedImage) image.getScaledInstance(newWidth, newHeight, hints));
 	}
 
+	/**
+	 * Thresholds the image and replaces it with a grayscale image with a value 0xFF where
+	 * the pixel was within the threshold and a 0x00 where the pixel was outside of the
+	 * threshold.
+	 * 
+	 * @param low A three-dimensional vector of the low HSV bound
+	 * @param high A three-dimensional vector of the high HSV bound
+	 */
 	public void threshold(Scalar low, Scalar high) {
 		Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
 		
-		// sketchy hack, but it works
+		// sketchy hack: switching S and V, but it works
 		Scalar lowPrime = new Scalar(low.val[0], low.val[2], low.val[1]);
 		Scalar highPrime = new Scalar(high.val[0], high.val[2], high.val[1]);
 		
+		// threshold image
 		Core.inRange(image, lowPrime, highPrime, image);
-		Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2BGR);
-		Core.multiply(image, new Scalar(1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0), image);
-		Core.multiply(image, oldImage, image);
+		
+		// uncomment the following to place old image over the threshold
+		// Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2BGR);
+		// Core.multiply(image, new Scalar(1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0), image);
+		// Core.multiply(image, oldImage, image);
 	}
 
 	public BufferedImage toBufferedImage() {
