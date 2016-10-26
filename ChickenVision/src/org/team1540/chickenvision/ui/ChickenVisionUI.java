@@ -87,7 +87,6 @@ public class ChickenVisionUI extends JFrame {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		//System.setProperty("java.library.path", "/Users/jake/Sandbox/opencv/build/lib");
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
 		ChickenVisionUI ui = new ChickenVisionUI();
