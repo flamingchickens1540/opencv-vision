@@ -17,7 +17,7 @@
  * along with the CCRE.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.team1540.chickenvision;
+package org.team1540.optometry;
 
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
