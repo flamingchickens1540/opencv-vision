@@ -1,10 +1,8 @@
 package org.team1540.chickenvision.ui;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -13,6 +11,7 @@ import javax.swing.JSlider;
 import org.opencv.core.Core;
 import org.opencv.core.Scalar;
 import org.team1540.chickenvision.Image;
+import org.team1540.chickenvision.Webcam;
 
 public class ChickenVisionUI extends JFrame {
 	private static final long serialVersionUID = 3524003050489214180L;
@@ -70,28 +69,40 @@ public class ChickenVisionUI extends JFrame {
 		listPane.add(h);
 		listPane.add(s);
 		listPane.add(v);
-		
-		//add(listPane);
-		
+				
 		setBounds(0, 0, 740, 600);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 	}
 	
 	private void updateImage() {
-		Image image = new Image(original);
-		int radius = 100;
-		image.threshold(new Scalar((currentH-radius), (currentS-radius), (currentV-radius)), 
-				new Scalar((currentH+radius), (currentS+radius), (currentV+radius)));
-		dynImagePanel.setImage(image.toBufferedImage());
+		if (original != null) {
+			Image image = new Image(original);
+			int radius = 50;
+			image.threshold(new Scalar((currentH-radius), (currentS-radius), (currentV-radius)), 
+					new Scalar((currentH+radius), (currentS+radius), (currentV+radius)));
+			dynImagePanel.setImage(image.toBufferedImage());
+		}
 	}
 	
 	public static void main(String[] args) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
-		ChickenVisionUI ui = new ChickenVisionUI();
-		ui.original = ImageIO.read(new File("res/hsv.jpg"));
+		final ChickenVisionUI ui = new ChickenVisionUI();
+		ui.original = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
 		ui.dynImagePanel.setImage(ui.original);
 		ui.updateImage();
+		
+		Webcam webcam = new Webcam("Camera 1", "10.15.40.13", true, 0);
+		
+		for (;;) {			
+			ui.original = webcam.getImage();
+			ui.updateImage();
+			
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 }
