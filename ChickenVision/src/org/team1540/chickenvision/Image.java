@@ -35,19 +35,21 @@ public class Image {
 	 * @param high A three-dimensional vector of the high HSV bound
 	 */
 	public void threshold(Scalar low, Scalar high) {
+		Mat output = new Mat(image.width() / 3, image.height(), CvType.CV_8SC1);
 		Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV);
 		
 		// sketchy hack: switching S and V, but it works
-		Scalar lowPrime = new Scalar(low.val[0], low.val[2], low.val[1]);
-		Scalar highPrime = new Scalar(high.val[0], high.val[2], high.val[1]);
+		//Scalar lowPrime = new Scalar(low.val[0], low.val[2], low.val[1]);
+		//Scalar highPrime = new Scalar(high.val[0], high.val[2], high.val[1]);
 		
 		// threshold image
-		Core.inRange(image, lowPrime, highPrime, image);
+		Core.inRange(image, low, high, output);
+		image = output;
 		
 		// uncomment the following to place old image over the threshold
-		// Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2BGR);
-		// Core.multiply(image, new Scalar(1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0), image);
-		// Core.multiply(image, oldImage, image);
+//		 Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2BGR);
+//		 Core.multiply(image, new Scalar(1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0), image);
+//		 Core.multiply(image, oldImage, image);
 	}
 
 	public BufferedImage toBufferedImage() {
@@ -68,6 +70,10 @@ public class Image {
 		out = new BufferedImage(image.width(), image.height(), type);
 		out.getRaster().setDataElements(0, 0, image.width(), image.height(), data);
 		return out;
+	}
+	
+	public Mat getMat() {
+		return image;
 	}
 
 	public static Mat bufferedImageToMat(BufferedImage image) {
