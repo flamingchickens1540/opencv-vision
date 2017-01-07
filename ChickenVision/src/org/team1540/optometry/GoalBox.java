@@ -24,7 +24,12 @@ public class GoalBox {
 								topLeft.x, topLeft.y, 1)));
 	}
 	
-	private double determinant(double a, double b, double c, 
+	public Point center() {
+		return new Point((bottomLeft.x+bottomRight.x+topLeft.x+topRight.x)/4.0,
+						 (bottomLeft.y+bottomRight.y+topLeft.y+topRight.y)/4.0);
+	}
+	
+	private static double determinant(double a, double b, double c, 
 			double d, double e, double f, 
 			double g, double h, double i) {
 		return a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g);

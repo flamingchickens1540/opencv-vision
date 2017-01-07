@@ -1,57 +1,92 @@
 package org.team1540.optometry;
 
-import javax.swing.JFrame;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.videoio.VideoCapture;
-import org.opencv.videoio.Videoio;
-import org.team1540.optometry.dsui.WebcamPanel;
+import org.opencv.core.Point;
+import org.team1540.optometry.comm.KangarooOutput;
+
+import com.github.sarxos.webcam.Webcam;
 
 public class KangarooMain {
+	
+	private static boolean shouldStop = false;
+	
+	public static AtomicReference<BufferedImage> currentFrame = new AtomicReference<>();
+	
+	public static void requestHalt() {
+		shouldStop = true;
+	}
+	
 	/*
 	 * To be run on the Kangaroo. See #visionaries in Slack for impl details.
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
-		VideoCapture camera;
-		while ((camera = connectToCamera(0)) == null) {
-			System.err.println("There was an error connecting to the camera; waiting 1000ms and retrying.");
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
+		Thread webcamThread = new Thread(() -> {
+			for (;;) {
+				Webcam webcam;
+				while ((webcam = openWebcam(0)) == null) {
+					int TIMEOUT = 1000;
+					System.err.println("Error opening webcam, retrying in "+TIMEOUT+"ms");
+					try {
+						Thread.sleep(TIMEOUT);
+					} catch (Exception e) {
+					}
+				}
+				
+				while (webcam.isOpen()) {
+					try {
+						currentFrame.set(webcam.getImage());
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+					}
+				}
+				currentFrame.set(null);
 			}
-		}
-		camera.set(Videoio.CV_CAP_PROP_FRAME_WIDTH, 2560/2);
-		camera.set(Videoio.CV_CAP_PROP_FRAME_HEIGHT, 1600/2);
+		});
 		
-		double width = camera.get(Videoio.CV_CAP_PROP_FRAME_WIDTH);
-		double height = camera.get(Videoio.CV_CAP_PROP_FRAME_HEIGHT);
-		System.out.println("Dimensions " + width + ", " + height);
+		webcamThread.setDaemon(true);
+		webcamThread.start();
 		
-		Mat imageMat = new Mat();
-		
-		JFrame frame = new JFrame();
-		WebcamPanel panel = new WebcamPanel();
-		frame.add(panel);
-		
-		for (;;) {
-			camera.read(imageMat);
-			panel.setImage(Vision.matToImage(imageMat));
+		while (!shouldStop) {
+			BufferedImage frame = currentFrame.get();
+			if (frame != null) {
+				Mat frameMat = Vision.imageToMat(frame);
+				List<GoalBox> boxes = Vision.isolateThresholdedGoals(frameMat, 50);
+				boxes.sort((a, b) -> -Double.compare(a.area(), b.area()));
+				if (boxes.size() < 0) {
+					GoalBox target = boxes.get(0);
+					Point targetCenter = target.center();
+					Point cameraCenter = new Point(frame.getWidth()/2, frame.getHeight()/2);
+					
+					double pitchOffset = Vision.verticalAngleFromCenter(targetCenter, cameraCenter, 1.0);
+					double yawOffset = Vision.horizontalAngleFromCenter(targetCenter, cameraCenter, 1.0);
+					
+					KangarooOutput.highGoalAvailable.set(true);
+					KangarooOutput.highGoalOffsetPitch.set((float) pitchOffset);
+					KangarooOutput.highGoalOffsetYaw.set((float) yawOffset);
+				}
+			} else {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 	}
 	
-	public static VideoCapture connectToCamera(int index) {
-		VideoCapture camera = new VideoCapture(0);
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
+	public static Webcam openWebcam(int index) {
+		Webcam webcam = Webcam.getWebcams().get(index);
+		if (webcam.open()) {
+			return webcam;
+		} else {
+			return null;
 		}
-//		if (camera.isOpened()) {
-			return camera;
-//		} else {
-//			return null;
-//		}
 	}
 }
