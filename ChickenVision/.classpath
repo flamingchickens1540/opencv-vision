@@ -12,5 +12,9 @@
 			<attribute name="javadoc_location" value="jar:file:/Users/jake/Sandbox/swingx-all-1.6.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/CommonChickenRuntimeEngine"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DeploymentEngine"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/roboRIO"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/PoultryInspector"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
