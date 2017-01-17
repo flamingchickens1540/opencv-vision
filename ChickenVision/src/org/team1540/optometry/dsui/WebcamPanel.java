@@ -21,11 +21,11 @@ public class WebcamPanel extends JPanel {
 	
 	public void setImage(BufferedImage newImage) {
 		currentImage = newImage;
-		if (currentImage != null) {
-			setBounds(0, 0, currentImage.getWidth(), currentImage.getHeight());
-		} else {
-			setBounds(0, 0, 0, 0);
-		}
+//		if (currentImage != null) {
+//			setBounds(0, 0, currentImage.getWidth(), currentImage.getHeight());
+//		} else {
+//			setBounds(0, 0, 0, 0);
+//		}
 		revalidate();
 		repaint();
 	}
