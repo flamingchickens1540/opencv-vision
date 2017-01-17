@@ -11,6 +11,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -157,7 +158,7 @@ public class Vision {
 	 * Return a list of GoalBoxes.
 	 */
 	public static List<GoalBox> isolateThresholdedGoals(Mat input, int minPixelSize) {
-		List<GoalBox> list = new ArrayList<>();
+		List<GoalBox> stageOne = new ArrayList<>();
 		
 		Mat marked = Mat.zeros(input.rows(), input.cols(), CvType.CV_8U);
 		
@@ -201,7 +202,7 @@ public class Vision {
 								}
 							}
 							
-							if (p_x+1 >= 0 && input.get(p_x+1, p_y)[0] > 0.5 && marked.get(p_x+1, p_y)[0] < 0.5) {
+							if (p_x+1 < input.height() && input.get(p_x+1, p_y)[0] > 0.5 && marked.get(p_x+1, p_y)[0] < 0.5) {
 								Point check = new Point(p_x+1, p_y);
 								points.add(check);
 								marked.put(p_x+1, p_y, 1);
@@ -243,7 +244,7 @@ public class Vision {
 								}
 							}
 							
-							if (p_y+1 >= 0 && input.get(p_x, p_y+1)[0] > 0.5 && marked.get(p_x, p_y+1)[0] < 0.5) {
+							if (p_y+1 < input.width() && input.get(p_x, p_y+1)[0] > 0.5 && marked.get(p_x, p_y+1)[0] < 0.5) {
 								Point check = new Point(p_x, p_y+1);
 								points.add(check);
 								marked.put(p_x, p_y+1, 1);
@@ -266,7 +267,7 @@ public class Vision {
 						}
 						
 						if (numPoints >= minPixelSize) {
-							list.add(new GoalBox(new Point(bottomLeft.y, bottomLeft.x),
+							stageOne.add(new GoalBox(new Point(bottomLeft.y, bottomLeft.x),
 									new Point(bottomRight.y, bottomRight.x),
 									new Point(topLeft.y, topLeft.x),
 									new Point(topRight.y, topRight.x)));
@@ -276,7 +277,77 @@ public class Vision {
 			}
 		}
 		
-		return list;
+		List<GoalBox> stageTwo = new ArrayList<>();
+		
+		// determine which of the blobs look like a 2017 FRC gear goal
+		// complexity: n^2
+		
+		// let them be about 50% off actual dimensions; might have to be decreased
+		double dimensionsSimilarity = 0.5;
+		
+		// check a rectangle twice the size (four times area)
+		double rectMultiplier = 2.0;
+		
+		for (int i=0; i<stageOne.size(); ++i) {
+			GoalBox b = stageOne.get(i);
+			
+			// generate box to look at
+			double possibleUnitSizeA = b.width() / 2.0; // 2 inches wide
+			double possibleUnitSizeB = b.height() / 5.0; // 5 inches tall
+			
+			// check that they are approximately within the right 
+//			if (Math.abs(1.0 - (possibleUnitSizeA / possibleUnitSizeB)) > dimensionsSimilarity) {
+//				System.out.println(Math.abs(1.0 - (possibleUnitSizeA / possibleUnitSizeB)));
+//				continue;
+//			}
+			
+			double unitSize = (possibleUnitSizeA + possibleUnitSizeB) / 2.0;
+			
+			Point bCenter = b.center();
+			Point centerToCheck = new Point(bCenter.x + unitSize*8.25, bCenter.y);
+			
+			double[] rectPoints = {centerToCheck.x - rectMultiplier*unitSize*(2.0/2), 
+					centerToCheck.y - rectMultiplier*unitSize*(5.0/2),
+					centerToCheck.x + rectMultiplier*unitSize*(2.0/2), 
+					centerToCheck.y + rectMultiplier*unitSize*(5.0/2),};
+			
+			Rect toCheckA = new Rect(rectPoints);
+			
+//			stageTwo.add(b);
+//			stageTwo.add(new GoalBox(new Point(rectPoints[0], rectPoints[1]),
+//					new Point(rectPoints[0], rectPoints[3]),
+//					new Point(rectPoints[2], rectPoints[1]),
+//					new Point(rectPoints[2], rectPoints[3])));
+						
+			List<GoalBox> possibleMatches = GoalBox.allGoalsInRectangle(toCheckA, stageOne);
+			possibleMatches.sort((m, n) -> Double.compare(m.area(), n.area()));
+			
+			if (possibleMatches.size() == 0) {
+				continue;
+			}
+			
+			GoalBox otherGoal;
+			if (possibleMatches.size() == 1) {
+				otherGoal = possibleMatches.get(0);
+			} else {
+				GoalBox gbA = possibleMatches.get(0);
+				GoalBox gbB = possibleMatches.get(1);
+				
+				if (gbA.center().y < gbB.center().y) {
+					otherGoal = new GoalBox(gbB.bottomLeft, gbB.bottomRight, gbA.topLeft, gbA.topRight);
+				} else {
+					otherGoal = new GoalBox(gbA.bottomLeft, gbA.bottomRight, gbB.topLeft, gbB.topRight);
+				}
+			}
+			
+			if (b.center().x < otherGoal.center().x) {
+				stageTwo.add(new GoalBox(b.bottomLeft, otherGoal.bottomRight, b.topLeft, otherGoal.topRight));
+			} else {
+				stageTwo.add(new GoalBox(otherGoal.bottomLeft, b.bottomRight, otherGoal.topLeft, b.topRight));
+			}
+		}
+		
+		return stageTwo;
 	}
 	
 	/*

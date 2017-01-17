@@ -30,14 +30,14 @@ public class HSVThresholdPicker extends JComponent {
 	private int saturationWidth;
 	private int hueWidth;
 	
-	private int minSaturationBound = 26,
-				maxSaturationBound = 84;
+	private int minSaturationBound = 24,
+				maxSaturationBound = 100;
 	
-	private int minHueBound = 10,
-				maxHueBound = 120;
+	private int minHueBound = 80,
+				maxHueBound = 140;
 	
-	private int minValueBound = 10,
-				maxValueBound = 40;
+	private int minValueBound = 40,
+				maxValueBound = 100;
 	
 	private boolean minBoundsDragging = false;
 	private boolean maxBoundsDragging = false;
@@ -55,7 +55,6 @@ public class HSVThresholdPicker extends JComponent {
 		this.saturationWidth = saturationWidth;
 		this.hueWidth = hueWidth;
 		
-//		this.setSize(hueWidth + saturationWidth + 1 + 50, );
 		this.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
@@ -259,11 +258,10 @@ public class HSVThresholdPicker extends JComponent {
 				maxSaturationBound + 5 };
 		g2.fillPolygon(xCoordinates2, yCoordinates2, 3);
 		
-		g2.setColor(Color.cyan);
 		if (minSaturationBound < maxSaturationBound) {
 			g2.drawLine(hueWidth + saturationWidth + 1 + 1 + (int) (2.5*Math.sqrt(3)), minSaturationBound, 
 					hueWidth + saturationWidth + 1 + 1 + (int) (2.5*Math.sqrt(3)), maxSaturationBound);
-		}
+		}		
 	}
 	
 	public float getHueUpper() {
