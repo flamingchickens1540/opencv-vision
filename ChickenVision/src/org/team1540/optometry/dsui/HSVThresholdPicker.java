@@ -219,7 +219,9 @@ public class HSVThresholdPicker extends JComponent {
 		
 		for (int s=0; s<numSaturationPoints; ++s) {
 			float saturation = minSaturation + (s * ((maxSaturation - minSaturation) / numSaturationPoints));
-			g2.setColor(Color.getHSBColor((240.f/360.f), saturation, (getValueUpper() + getValueLower()) / 2));
+			g2.setColor(Color.getHSBColor((getHueUpper() + getHueLower()) / 2,
+					saturation,
+					(getValueUpper() + getValueLower()) / 2));
 			g2.fillRect(numHuePoints+1, s, saturationWidth, 1);
 		}
 		
