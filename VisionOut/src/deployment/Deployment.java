@@ -21,7 +21,7 @@ public class Deployment {
      * The reference to your main class. When you change which class is the main
      * class of your project, make sure to change this line.
      */
-    public static final Class<? extends FRCApplication> robotMain = robot.RobotTemplate.class;
+    public static final Class<? extends FRCApplication> robotMain = org.team1540.visionout.Robot.class;
 
     /**
      * A deployment task that downloads your robot code to a roboRIO found based
@@ -33,7 +33,7 @@ public class Deployment {
     public static void deploy() throws Exception {
         Artifact result = DepRoboRIO.buildProject(robotMain);
 
-        int number = robot.RobotTemplate.TEAM_NUMBER;
+        int number = org.team1540.visionout.Robot.TEAM_NUMBER;
 
         if (number == 0) {
             throw new RuntimeException("You need to change your TEAM_NUMBER in RobotTemplate.java!");
@@ -70,7 +70,7 @@ public class Deployment {
         DepEgg.layEgg(result, new ArtifactDeployer() {
             @Override
             public void deployArtifact(Artifact artifact) throws Exception {
-                try (DepRoboRIO.RIOShell rshell = DepRoboRIO.discoverAndVerify(robot.RobotTemplate.TEAM_NUMBER)) {
+                try (DepRoboRIO.RIOShell rshell = DepRoboRIO.discoverAndVerify(org.team1540.visionout.Robot.TEAM_NUMBER)) {
                     rshell.downloadAndStart(artifact);
                 }
             }
