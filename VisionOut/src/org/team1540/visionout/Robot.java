@@ -1,11 +1,13 @@
 package org.team1540.visionout;
 
-import ccre.channel.*;
-import ccre.cluck.*;
-import ccre.ctrl.*;
-import ccre.drivers.ctre.talon.TalonEncoder;
+import ccre.channel.BooleanCell;
+import ccre.channel.FloatCell;
+import ccre.channel.FloatOutput;
+import ccre.cluck.Cluck;
+import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
-import ccre.frc.*;
+import ccre.frc.FRC;
+import ccre.frc.FRCApplication;
 
 /**
  * This is the core class of a CCRE project. The CCRE launching system will make
@@ -23,8 +25,6 @@ public class Robot implements FRCApplication {
      */
     public static final int TEAM_NUMBER = 1540;
     
-    private FloatOutput leftSide;
-    private FloatOutput rightSide;
     private final TalonExtendedMotor leftFrontMotor = FRC.talonCAN(4);
     private final TalonExtendedMotor leftCenterMotor = FRC.talonCAN(5);
     private final TalonExtendedMotor leftBackMotor = FRC.talonCAN(6);
@@ -32,53 +32,30 @@ public class Robot implements FRCApplication {
     private final TalonExtendedMotor rightCenterMotor = FRC.talonCAN(2);
     private final TalonExtendedMotor rightBackMotor = FRC.talonCAN(3);
     
-    private final TalonEncoder leftEncoder = leftFrontMotor.modEncoder();
+    private FloatOutput leftSide;
+    private FloatOutput rightSide;
     
-    //private static final TalonEncoder rightCenterEncoder = FRC.talonCAN(2).modEncoder();
+    private BooleanCell trueCell = new BooleanCell(true);
+    private FloatCell degreesToTurn = new FloatCell(0);
     
-    //pid values
-    private static final FloatCell p = new FloatCell(-0.005f);
-    private static final FloatCell i = new FloatCell(-0.00f);
-    private static final FloatCell d = new FloatCell(0f);
-    
-    private final FloatCell target = new FloatCell(0f);
-    private final PIDController mainPID = new PIDController(leftEncoder.getEncoderPosition(), target, p, i, d);
-    
-    //calibration
-    private FloatCell turnCalibration = new FloatCell(21.35f);
+    private AutoTurning testTurner = new AutoTurning(leftFrontMotor.modEncoder(), trueCell, degreesToTurn);
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
-    	System.out.println("Started setupRobot");
-    	
-    	Cluck.publish(".P",p);
-    	Cluck.publish(".I", i);
-    	Cluck.publish(".D", d);
-    	Cluck.publish("Target", target);
-    	Cluck.publish("Turn Calibration", turnCalibration);
-    	
     	leftSide = leftFrontMotor.simpleControl().combine(leftCenterMotor.simpleControl().combine(leftBackMotor.simpleControl()));
     	rightSide = rightFrontMotor.simpleControl().combine(rightCenterMotor.simpleControl().combine(rightBackMotor.simpleControl()));
     	
-    	Drive.tank(FRC.joystick1.axis(2).deadzone(0.95f), FRC.joystick1.axis(6).negated().deadzone(0.95f), leftSide, rightSide);
+    	testTurner.asInput().multipliedBy(0.5f).send(leftSide);
+    	testTurner.asInput().multipliedBy(0.5f).send(rightSide);
     	
-    	Cluck.publish("Left Center Encoder", leftEncoder.getEncoderPosition());
+    	Cluck.publish("turnerInput", testTurner.asInput());
     	
-    	FRC.joystick1.button(1).onPress().send(() -> turnRobot(90));
-    	mainPID.setOutputBounds(0.7f);
-    	mainPID.send(leftSide);
-    	mainPID.send(rightSide);
-    	mainPID.updateWhen(FRC.constantPeriodic);
-    	
-    	FRC.startTele.send(() -> mainPID.reset());
-    	
-    	//because PIDController doesn't implement FloatInput
-    	Cluck.publish("ROTATE PID", mainPID.negated().negated());
+        FRC.joystick1.button(1).onPress().send(() -> test());
     }
     
-    public void turnRobot(float degrees) {
-    	Float startPosition = leftEncoder.getEncoderPosition().get();
-    	target.set(degrees*turnCalibration.get()+startPosition);
-    	mainPID.reset();
+    public void test() {
+    	degreesToTurn.set(90);;
     }
+    
+    
 }
