@@ -30,13 +30,13 @@ public class HSVThresholdPicker extends JComponent {
 	private int saturationWidth;
 	private int hueWidth;
 	
-	private int minSaturationBound = 24,
+	private int minSaturationBound = 90,
 				maxSaturationBound = 100;
 	
-	private int minHueBound = 80,
-				maxHueBound = 140;
+	private int minHueBound = 70,
+				maxHueBound = 120;
 	
-	private int minValueBound = 40,
+	private int minValueBound = 60,
 				maxValueBound = 100;
 	
 	private boolean minBoundsDragging = false;

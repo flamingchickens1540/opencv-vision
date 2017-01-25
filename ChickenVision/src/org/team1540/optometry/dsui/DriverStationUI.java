@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +23,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.team1540.optometry.GoalBox;
 import org.team1540.optometry.Vision;
+
+import com.github.sarxos.webcam.Webcam;
+import com.github.sarxos.webcam.WebcamResolution;
 
 public class DriverStationUI {
 	private static HSVThresholdPicker picker = new HSVThresholdPicker(360, 20, 100);
@@ -55,9 +60,9 @@ public class DriverStationUI {
 		Mat imageMat = Vision.imageToMat(image);
 		Mat imageOutputMat = Vision.grayscaleOutputMat(imageMat);
 		
-		Vision.thresholdImage(imageMat, imageOutputMat, new Scalar(picker.getHueLower()*256, 
+		Vision.thresholdImage(imageMat, imageOutputMat, new Scalar(picker.getHueLower()*180, 
 				picker.getSaturationLower()*256, 
-				picker.getValueLower()*256), new Scalar(picker.getHueUpper()*256, 
+				picker.getValueLower()*256), new Scalar(picker.getHueUpper()*180, 
 						picker.getSaturationUpper()*256, 
 						picker.getValueUpper()*256));
 		BufferedImage imageOutput = Vision.matToImage(imageOutputMat);
@@ -71,6 +76,11 @@ public class DriverStationUI {
 	    int boxRadius = 3;
 		Graphics2D g2d = (Graphics2D) convertedImg.getGraphics();
 		for (GoalBox box : goalBoxes) {
+			g2d.setColor(Color.YELLOW);
+			g2d.drawLine((int)box.bottomLeft.x, (int)box.bottomLeft.y, (int)box.bottomRight.x, (int)box.bottomRight.y);
+			g2d.drawLine((int)box.bottomRight.x, (int)box.bottomRight.y, (int)box.topRight.x, (int)box.topRight.y);
+			g2d.drawLine((int)box.topRight.x, (int)box.topRight.y, (int)box.topLeft.x, (int)box.topLeft.y);
+			g2d.drawLine((int)box.topLeft.x, (int)box.topLeft.y, (int)box.bottomLeft.x, (int)box.bottomLeft.y);
 			g2d.setColor(Color.MAGENTA);
 			g2d.fillRect((int)box.bottomLeft.x-boxRadius, (int)box.bottomLeft.y-boxRadius, boxRadius*2+1, boxRadius*2+1);
 			g2d.setColor(Color.RED);
@@ -105,11 +115,52 @@ public class DriverStationUI {
 		
 		BufferedImage image = ImageIO.read(new File("/Users/jake/Downloads/2017VisionExample/Vision Images/LED Peg/1ftH7ftD0Angle0Brightness.jpg"));
 //		BufferedImage image = ImageIO.read(new File("/Users/jake/Desktop/1.jpg"));
-		BufferedImage smallerImage = toBufferedImage(image.getScaledInstance((int) (640.f/1.5), (int) (480.f/1.5), Image.SCALE_FAST));
+//		BufferedImage image = ImageIO.read(new File("/Users/jake/Downloads/HSLS255.jpg"));
 		
-		for (;;) {
-			webcamPanel.setImage(thresholdImage(smallerImage));
-			Thread.sleep(100);			
+		final Webcam webcam = Webcam.getWebcams().get(1);
+		webcam.setViewSize(WebcamResolution.VGA.getSize());
+		webcam.open();
+		
+		frame.addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {				
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				webcam.close();
+				Runtime.getRuntime().halt(0);
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {				
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {				
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {				
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {				
+			}
+		});
+				
+		while (!webcam.isOpen()) Thread.sleep(100);;
+		
+		while (webcam.isOpen()) {
+			BufferedImage possibleImage = webcam.getImage();
+			BufferedImage smallerImage = toBufferedImage(thresholdImage(possibleImage).getScaledInstance((int) (640.f/1.5), (int) (480.f/1.5), Image.SCALE_FAST));
+			webcamPanel.setImage(smallerImage);
+			Thread.sleep(100);
 		}
 	}
 }

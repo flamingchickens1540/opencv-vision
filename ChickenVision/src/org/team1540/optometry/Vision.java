@@ -18,12 +18,11 @@ import org.opencv.imgproc.Imgproc;
 public class Vision {
 	private static double GOAL_CERTAINTY_THRESHOLD = 0.5;
 	
-	public static Mat imageToMat(BufferedImage image) {
-		byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-		Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
-		mat.put(0, 0, pixels);
+	public static Mat imageToMat(BufferedImage bgrImage) {
+		Mat mat = new Mat(bgrImage.getHeight(), bgrImage.getWidth(), CvType.CV_8UC3);
+		byte[] data = ((DataBufferByte) bgrImage.getRaster().getDataBuffer()).getData();
+		mat.put(0, 0, data);
 		Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2HSV);
-		//Imgproc.cvtColor(mat, mat, Imgproc.COLOR_HSV2RGB);
 		return mat;
 	}
 	
@@ -31,20 +30,20 @@ public class Vision {
 		return new Mat(image.width() / 3, image.height(), CvType.CV_8SC1);
 	}
 
-	public static BufferedImage matToImage(Mat image) {
-		BufferedImage out;
-		byte[] data = new byte[(int) (image.width() * image.height() * image.elemSize())];
+	public static BufferedImage matToImage(Mat hsvMat) {
 		int type;
-		image.get(0, 0, data);
-
-		if (image.channels() == 1) {
+		if (hsvMat.channels() == 1) {
 			type = BufferedImage.TYPE_BYTE_GRAY;
 		} else {
 			type = BufferedImage.TYPE_3BYTE_BGR;
+			Imgproc.cvtColor(hsvMat, hsvMat, Imgproc.COLOR_HSV2BGR);
 		}
 
-		out = new BufferedImage(image.width(), image.height(), type);
-		out.getRaster().setDataElements(0, 0, image.width(), image.height(), data);
+		byte[] data = new byte[(int) (hsvMat.width() * hsvMat.height() * hsvMat.elemSize())];
+		hsvMat.get(0, 0, data);
+		
+		BufferedImage out = new BufferedImage(hsvMat.width(), hsvMat.height(), type);
+		out.getRaster().setDataElements(0, 0, hsvMat.width(), hsvMat.height(), data);
 		return out;
 	}
 	
@@ -283,7 +282,7 @@ public class Vision {
 		// complexity: n^2
 		
 		// let them be about 50% off actual dimensions; might have to be decreased
-		double dimensionsSimilarity = 0.5;
+		double dimensionsSimilarity = 2.3;
 		
 		// check a rectangle twice the size (four times area)
 		double rectMultiplier = 2.0;
@@ -294,12 +293,11 @@ public class Vision {
 			// generate box to look at
 			double possibleUnitSizeA = b.width() / 2.0; // 2 inches wide
 			double possibleUnitSizeB = b.height() / 5.0; // 5 inches tall
-			
+						
 			// check that they are approximately within the right 
-//			if (Math.abs(1.0 - (possibleUnitSizeA / possibleUnitSizeB)) > dimensionsSimilarity) {
-//				System.out.println(Math.abs(1.0 - (possibleUnitSizeA / possibleUnitSizeB)));
-//				continue;
-//			}
+			if (Math.abs(1.0 - (possibleUnitSizeA / possibleUnitSizeB)) > dimensionsSimilarity) {
+				continue;
+			}
 			
 			double unitSize = (possibleUnitSizeA + possibleUnitSizeB) / 2.0;
 			
@@ -310,17 +308,19 @@ public class Vision {
 					centerToCheck.y - rectMultiplier*unitSize*(5.0/2),
 					centerToCheck.x + rectMultiplier*unitSize*(2.0/2), 
 					centerToCheck.y + rectMultiplier*unitSize*(5.0/2),};
+			Rect toCheckA = new Rect(new Point(rectPoints[0], rectPoints[1]),
+									 new Point(rectPoints[2], rectPoints[3]));
 			
-			Rect toCheckA = new Rect(rectPoints);
-			
-//			stageTwo.add(b);
-//			stageTwo.add(new GoalBox(new Point(rectPoints[0], rectPoints[1]),
-//					new Point(rectPoints[0], rectPoints[3]),
-//					new Point(rectPoints[2], rectPoints[1]),
-//					new Point(rectPoints[2], rectPoints[3])));
+			stageTwo.add(b);
+			stageTwo.add(new GoalBox(new Point(rectPoints[0], rectPoints[1]),
+					new Point(rectPoints[0], rectPoints[3]),
+					new Point(rectPoints[2], rectPoints[1]),
+					new Point(rectPoints[2], rectPoints[3])));
 						
 			List<GoalBox> possibleMatches = GoalBox.allGoalsInRectangle(toCheckA, stageOne);
 			possibleMatches.sort((m, n) -> Double.compare(m.area(), n.area()));
+			
+//			stageTwo.addAll(possibleMatches);
 			
 			if (possibleMatches.size() == 0) {
 				continue;
@@ -351,13 +351,13 @@ public class Vision {
 	}
 	
 	/*
-	 * Calculate the horizontal angle away in degrees from the center given degreesPerPixel.
+	 * Calculate the horizontal angle away in degrees from the center given anglePerPixel.
 	 */
-	public static double horizontalAngleFromCenter(Point point, Point center, double pixelsPerDegree) {
-		return (point.x - center.x) * pixelsPerDegree;
+	public static double horizontalAngleFromCenter(Point point, Point center, double anglePerPixel) {
+		return (point.x - center.x) * anglePerPixel;
 	}
 	
-	public static double verticalAngleFromCenter(Point point, Point center, double pixelsPerDegree) {
-		return (point.y - center.y) * pixelsPerDegree;
+	public static double verticalAngleFromCenter(Point point, Point center, double anglePerPixel) {
+		return (point.y - center.y) * anglePerPixel;
 	}
 }
