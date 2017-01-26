@@ -1,15 +1,19 @@
 package org.team1540.optometry;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
-import org.team1540.optometry.comm.KangarooInput;
 import org.team1540.optometry.comm.KangarooOutput;
 import org.team1540.optometry.comm.RoboRIOInput;
 
@@ -43,6 +47,7 @@ public class KangarooMain {
 			while (true) {
 				synchronized (videoLock) {
 					vc.read(currentFrame);
+					Imgproc.cvtColor(currentFrame, currentFrame, Imgproc.COLOR_BGR2HSV);
 				}
 				
 				try {
@@ -64,14 +69,23 @@ public class KangarooMain {
 		RoboRIOInput.setup();
 		
 		while (!shouldStop) {
+//			Logger.info("Hue Minimum " + RoboRIOInput.hueMin.get());
 			if (currentFrame != null) {
 				synchronized (videoLock) {
-					List<GoalBox> boxes = Vision.isolateThresholdedGoals(currentFrame, 50);
+					Mat imageOutputMat = Vision.grayscaleOutputMat(currentFrame);
+					Vision.thresholdImage(currentFrame, imageOutputMat, 
+							new Scalar(0.18888889*180, 0.90999997*256, 0.58*256),
+							new Scalar(0.43333334*180, 256, 256));
+					
+//					ImageIO.write(Vision.matToImage(currentFrame), "jpeg", new File("/home/robotics/image2.jpg"));
+//					ImageIO.write(Vision.matToImage(imageOutputMat), "jpeg", new File("/home/robotics/image.jpg"));
+					
+					List<GoalBox> boxes = Vision.isolateThresholdedGoals(imageOutputMat, 50);
 					boxes.sort((a, b) -> -Double.compare(a.area(), b.area()));
 					
 					if (!boxes.isEmpty()) {
 						GoalBox goal = boxes.get(0);				
-						Point center = new Point(currentFrame.height()/2, currentFrame.width()/2);
+						Point center = new Point(imageOutputMat.height()/2, imageOutputMat.width()/2);
 						float yawOffset = (float) Vision.horizontalAngleFromCenter(goal.center(), center, RoboRIOInput.anglePerPixel.get());
 						
 						// only send a true over the network when it changes

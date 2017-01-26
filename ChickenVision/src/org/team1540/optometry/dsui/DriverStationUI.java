@@ -4,14 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -24,8 +20,7 @@ import org.opencv.core.Scalar;
 import org.team1540.optometry.GoalBox;
 import org.team1540.optometry.Vision;
 
-import com.github.sarxos.webcam.Webcam;
-import com.github.sarxos.webcam.WebcamResolution;
+import miscellaneous.Webcam;
 
 public class DriverStationUI {
 	private static HSVThresholdPicker picker = new HSVThresholdPicker(360, 20, 100);
@@ -113,53 +108,78 @@ public class DriverStationUI {
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		
-		BufferedImage image = ImageIO.read(new File("/Users/jake/Downloads/2017VisionExample/Vision Images/LED Peg/1ftH7ftD0Angle0Brightness.jpg"));
+//		BufferedImage image = ImageIO.read(new File("/Users/jake/Downloads/2017VisionExample/Vision Images/LED Peg/1ftH7ftD0Angle0Brightness.jpg"));
 //		BufferedImage image = ImageIO.read(new File("/Users/jake/Desktop/1.jpg"));
 //		BufferedImage image = ImageIO.read(new File("/Users/jake/Downloads/HSLS255.jpg"));
 		
-		final Webcam webcam = Webcam.getWebcams().get(1);
-		webcam.setViewSize(WebcamResolution.VGA.getSize());
-		webcam.open();
 		
-		frame.addWindowListener(new WindowListener() {
-
-			@Override
-			public void windowOpened(WindowEvent e) {				
-			}
-
-			@Override
-			public void windowClosing(WindowEvent e) {
-				webcam.close();
-				Runtime.getRuntime().halt(0);
-			}
-
-			@Override
-			public void windowClosed(WindowEvent e) {
-			}
-
-			@Override
-			public void windowIconified(WindowEvent e) {				
-			}
-
-			@Override
-			public void windowDeiconified(WindowEvent e) {				
-			}
-
-			@Override
-			public void windowActivated(WindowEvent e) {				
-			}
-
-			@Override
-			public void windowDeactivated(WindowEvent e) {				
+		Webcam webcam = new Webcam("webcam", "10.15.40.68", true, 0);
+//		webcam.start();
+//		final Webcam webcam = Webcam.getWebcams().get(1);
+//		webcam.setViewSize(WebcamResolution.VGA.getSize());
+//		webcam.open();
+		
+//		frame.addWindowListener(new WindowListener() {
+//
+//			@Override
+//			public void windowOpened(WindowEvent e) {				
+//			}
+//
+//			@Override
+//			public void windowClosing(WindowEvent e) {
+//				webcam.close();
+//				Runtime.getRuntime().halt(0);
+//			}
+//
+//			@Override
+//			public void windowClosed(WindowEvent e) {
+//			}
+//
+//			@Override
+//			public void windowIconified(WindowEvent e) {				
+//			}
+//
+//			@Override
+//			public void windowDeiconified(WindowEvent e) {				
+//			}
+//
+//			@Override
+//			public void windowActivated(WindowEvent e) {				
+//			}
+//
+//			@Override
+//			public void windowDeactivated(WindowEvent e) {				
+//			}
+//		});
+//				
+//		while (!webcam.isOpen()) Thread.sleep(100);;
+//		
+//		while (webcam.isOpen()) {
+		
+		
+		Thread thing = new Thread(() -> {
+			while (true) {
+				System.out.println("Hue L " + picker.getHueLower() + " | "
+								 + "Hue U " + picker.getHueUpper() + " | "
+								 + "Sat L " + picker.getSaturationLower() + " | "
+								 + "Sat U " + picker.getSaturationUpper() + " | "
+								 + "Val L " + picker.getValueLower() + " | "
+								 + "Val L " + picker.getValueUpper());
+				try {
+					Thread.sleep(5000);
+				} catch (Exception e) {
+				}
 			}
 		});
-				
-		while (!webcam.isOpen()) Thread.sleep(100);;
+		thing.setDaemon(true);
+		thing.start();
 		
-		while (webcam.isOpen()) {
+		while (webcam.isAlive()) {
 			BufferedImage possibleImage = webcam.getImage();
-			BufferedImage smallerImage = toBufferedImage(thresholdImage(possibleImage).getScaledInstance((int) (640.f/1.5), (int) (480.f/1.5), Image.SCALE_FAST));
-			webcamPanel.setImage(smallerImage);
+			if (possibleImage != null) {
+				BufferedImage smallerImage = toBufferedImage(thresholdImage(possibleImage).getScaledInstance((int) (640.f/1.5), (int) (480.f/1.5), Image.SCALE_FAST));
+				webcamPanel.setImage(smallerImage);
+			}
 			Thread.sleep(100);
 		}
 	}
