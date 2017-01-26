@@ -35,10 +35,10 @@ public class Robot implements FRCApplication {
     private FloatOutput leftSide;
     private FloatOutput rightSide;
     
-    private BooleanCell trueCell = new BooleanCell(true);
+    private BooleanCell cell = new BooleanCell(false);
     private FloatCell degreesToTurn = new FloatCell(0);
     
-    private AutoTurning testTurner = new AutoTurning(leftFrontMotor.modEncoder(), trueCell, degreesToTurn);
+    private AutoTurning testTurner = new AutoTurning(leftFrontMotor.modEncoder(), cell, degreesToTurn);
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
@@ -54,7 +54,8 @@ public class Robot implements FRCApplication {
     }
     
     public void test() {
-    	degreesToTurn.set(90);;
+    	degreesToTurn.set((float) (90+Math.random()/2));
+    	cell.set(true);
     }
     
     
