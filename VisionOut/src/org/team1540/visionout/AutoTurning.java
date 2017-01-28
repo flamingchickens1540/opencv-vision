@@ -15,15 +15,15 @@ import ccre.frc.*;
  */
 public class AutoTurning {
     
-    private FloatIO encoderPosition;
+    private FloatInput position;
     
     //pid values
-    public static FloatCell p = new FloatCell(-0.005f);
+    public static FloatCell p = new FloatCell(-0.010f);
     public static FloatCell i = new FloatCell(-0.00f);
     public static FloatCell d = new FloatCell(-0f);
     
     //calibration
-    public static FloatCell turnCalibration = new FloatCell(21.35f);
+    public static FloatCell turnCalibration = new FloatCell(11f);
     
     private StateMachine currentValue = new StateMachine("staticTurner","staticTurner", "pid");
     
@@ -41,15 +41,15 @@ public class AutoTurning {
      * @param goalIsSeen If the goal has been seen or not.
      * @param degreesToTurn The number of degrees to turn once the goal is seen.
      */
-    public AutoTurning(TalonEncoder encoder, BooleanInput goalIsSeen, FloatInput degreesToTurn) {
-    	this.encoderPosition = encoder.getEncoderPosition();
+    public AutoTurning(FloatInput position, BooleanInput goalIsSeen, FloatInput degreesToTurn) {
+    	this.position = position;
     	this.goalIsSeen = goalIsSeen;
     	this.degreesToTurn = degreesToTurn;
-    	startPosition.set(encoderPosition.get());
+    	startPosition.set(position.get());
     	
     	target = degreesToTurn.multipliedBy(turnCalibration).plus(startPosition);
     	
-    	pid = new PIDController(encoderPosition, target, p, i, d);
+    	pid = new PIDController(position, target, p, i, d);
     	
     	//set up the extra stuff for the pid properly
     	pid.setOutputBounds(1.0f);
@@ -61,14 +61,15 @@ public class AutoTurning {
     	currentValue.setStateWhen("pid", goalIsSeen.onPress());
     	
     	//when the goal is seen, reset the start position
-    	degreesToTurn.send(a -> startPosition.set(encoderPosition.get()));
+    	degreesToTurn.send(a -> startPosition.set(position.get()));
     	
     	Cluck.publish("target", target);
     	Cluck.publish("pid", pid.negated().negated());
-    	Cluck.publish("encoderPosition",encoderPosition);
+    	Cluck.publish("encoderPosition",position);
     	Cluck.publish("startPosition",startPosition);
-    	Cluck.publish("degreesToTurn", degreesToTurn);
     	Cluck.publish("asInput", asInput());
+    	
+    	Cluck.publish("turnCalibration", turnCalibration);
     }
     
     /**
