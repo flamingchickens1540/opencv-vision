@@ -15,25 +15,23 @@ import ccre.frc.*;
  */
 public class AutoTurning {
     
-    private FloatInput position;
-    
     //pid values
-    public static FloatCell p = new FloatCell(-0.010f);
-    public static FloatCell i = new FloatCell(-0.00f);
-    public static FloatCell d = new FloatCell(-0f);
+    public final FloatCell p = new FloatCell(-0.010f);
+    public final FloatCell i = new FloatCell(-0.00f);
+    public final FloatCell d = new FloatCell(-0f);
     
     //calibration
-    public static FloatCell turnCalibration = new FloatCell(10.8f);
+    public FloatCell turnCalibration = new FloatCell(10.8f);
     
     private StateMachine currentValue = new StateMachine("staticTurner","staticTurner", "pid");
     
-    private FloatInput degreesToTurn;
-    private BooleanInput goalIsSeen; 
 	private FloatInput target;
 	private FloatCell startPosition = new FloatCell();
     private PIDController pid;
     
     private FloatCell staticTurner = new FloatCell(0f);
+    
+    public final FloatInput currentDegrees;
     
     /**
      * The one and only constructor.
@@ -43,9 +41,6 @@ public class AutoTurning {
      * @param updateWhen The event to use when resetting the starting position for turning.
      */
     public AutoTurning(FloatInput position, BooleanInput goalIsSeen, FloatInput degreesToTurn, EventInput updateWhen) {
-    	this.position = position;
-    	this.goalIsSeen = goalIsSeen;
-    	this.degreesToTurn = degreesToTurn;
     	startPosition.set(position.get());
     	
     	target = degreesToTurn.multipliedBy(turnCalibration).plus(startPosition);
@@ -63,6 +58,8 @@ public class AutoTurning {
     	
     	//when the goal is seen, reset the start position
     	updateWhen.send(() -> startPosition.set(position.get()));
+    	
+    	currentDegrees = position.multipliedBy(turnCalibration);
     	
     	Cluck.publish("target", target);
     	Cluck.publish("pid", pid.negated().negated());

@@ -38,7 +38,7 @@ public class Robot implements FRCApplication {
     private BooleanCell cell = new BooleanCell(false);
     private FloatCell degreesToTurn = new FloatCell(0);
     
-    private AutoTurning testTurner = new AutoTurning(leftFrontMotor.modEncoder().getEncoderPosition(), cell, degreesToTurn);
+    private AutoTurning testTurner = new AutoTurning(leftFrontMotor.modEncoder().getEncoderPosition(), cell, degreesToTurn, FRC.joystick1.onPress(1));
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
