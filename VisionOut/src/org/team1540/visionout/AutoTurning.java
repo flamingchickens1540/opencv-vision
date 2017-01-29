@@ -23,7 +23,7 @@ public class AutoTurning {
     public static FloatCell d = new FloatCell(-0f);
     
     //calibration
-    public static FloatCell turnCalibration = new FloatCell(11f);
+    public static FloatCell turnCalibration = new FloatCell(10.8f);
     
     private StateMachine currentValue = new StateMachine("staticTurner","staticTurner", "pid");
     
@@ -33,15 +33,16 @@ public class AutoTurning {
 	private FloatCell startPosition = new FloatCell();
     private PIDController pid;
     
-    private FloatCell staticTurner = new FloatCell(1f);
+    private FloatCell staticTurner = new FloatCell(0f);
     
     /**
      * The one and only constructor.
-     * @param encoder The encoder on the wheel to be used for measuring turning progress.
+     * @param position The encoder on the wheel to be used for measuring turning progress.
      * @param goalIsSeen If the goal has been seen or not.
      * @param degreesToTurn The number of degrees to turn once the goal is seen.
+     * @param updateWhen The event to use when resetting the starting position for turning.
      */
-    public AutoTurning(FloatInput position, BooleanInput goalIsSeen, FloatInput degreesToTurn) {
+    public AutoTurning(FloatInput position, BooleanInput goalIsSeen, FloatInput degreesToTurn, EventInput updateWhen) {
     	this.position = position;
     	this.goalIsSeen = goalIsSeen;
     	this.degreesToTurn = degreesToTurn;
@@ -61,7 +62,7 @@ public class AutoTurning {
     	currentValue.setStateWhen("pid", goalIsSeen.onPress());
     	
     	//when the goal is seen, reset the start position
-    	degreesToTurn.send(a -> startPosition.set(position.get()));
+    	updateWhen.send(() -> startPosition.set(position.get()));
     	
     	Cluck.publish("target", target);
     	Cluck.publish("pid", pid.negated().negated());
