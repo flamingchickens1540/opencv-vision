@@ -8,6 +8,10 @@ import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.frc.FRCApplication;
+import ccre.instinct.AutonomousModeOverException;
+import ccre.instinct.InstinctModule;
+import ccre.instinct.InstinctMultiModule;
+import ccre.tuning.TuningContext;
 
 /**
  * This is the core class of a CCRE project. The CCRE launching system will make

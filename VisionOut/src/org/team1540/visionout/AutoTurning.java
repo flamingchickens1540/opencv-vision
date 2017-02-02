@@ -21,7 +21,7 @@ public class AutoTurning {
     public final FloatCell d = new FloatCell(-0f);
     
     //calibration
-    public FloatCell turnCalibration = new FloatCell(10.8f);
+    public final FloatCell turnCalibration = new FloatCell(10.8f);
     
     private StateMachine currentValue = new StateMachine("staticTurner","staticTurner", "pid");
     
@@ -61,6 +61,7 @@ public class AutoTurning {
     	
     	currentDegrees = position.multipliedBy(turnCalibration);
     	
+    	/*
     	Cluck.publish("target", target);
     	Cluck.publish("pid", pid.negated().negated());
     	Cluck.publish("encoderPosition",position);
@@ -68,6 +69,7 @@ public class AutoTurning {
     	Cluck.publish("asInput", asInput());
     	
     	Cluck.publish("turnCalibration", turnCalibration);
+    	*/
     }
     
     /**
